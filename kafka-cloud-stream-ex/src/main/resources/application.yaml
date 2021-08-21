@@ -1,0 +1,65 @@
+server:
+  port: 9091
+spring:
+  application:
+    name: Kafka-Cloud-Ex
+  datasource:
+    url: jdbc:h2:file:./data/kf-cloud-db
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+  h2:
+    console:
+      enabled: true
+      path: /h2
+      settings:
+        web-allow-others: false
+  cloud:
+    stream:
+#      default:
+#        content-type: application/json
+      bindings:
+        kfConsumerOne-in-0:
+#          content-type:
+          destination: person-topic
+          consumer:
+            concurrency: 3
+            max-attempts: 3
+      kafka:
+        binder:
+          brokers: localhost:29092
+#          configuration:
+        bindings:
+          kfConsumerOne-in-0:
+            consumer:
+              configuration:
+#               key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#               value.deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+#               value.deserializer: org.apache.kafka.common.serialization.StringDeserializer
+                key.deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+                value.deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+                group.id: CONSUMER-CLOUD-CLIENT-EX
+                auto.offset.reset: latest
+                max.poll.records: 10
+                max.poll.interval.ms: 60000
+                spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+                spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+                spring.deserializer.value.function: srini.learn.kafka.kafkacloudstreamex.kafka.PoisonPillProvider
+                spring.json.trusted.packages: "*"
+                spring.json.value.default.type: srini.learn.kafka.kafkacloudstreamex.dao.model.Person
+                spring.json.key.default.type: java.lang.String
+
+    function:
+      definition: kfConsumerOne
+
+
+
+logging:
+  level:
+    org.apache.kafka: info
+    org.springframework: error
+
